@@ -54,6 +54,20 @@ private:
 		buf[2] = 0x00;
 		buf[3] = 0x02;
 
+		res = hid_write(_device, buf, 4);
+		// cout << "data_read_request status: " << res << endl;
+		return res;
+	}
+
+	int data_write(unsigned char data)
+	{
+		int res;
+		unsigned char buf[4];
+		buf[0] = 0x14;
+		buf[1] = 0x6c;
+		buf[2] = 0x01;
+		buf[3] = data;
+
 		res = hid_write(_device, buf, 3);
 		// cout << "data_read_request status: " << res << endl;
 		return res;
@@ -114,6 +128,7 @@ private:
 	int request_current_data()
 	{
 		int res;
+		data_write(0x03);
 		data_read_request();
 		transfer_status_request();
 		get_read_write_transfer_status();
