@@ -1,0 +1,7 @@
+1) Disconnect the power board from the machine (if connected)
+2) Run "setup.sh" file
+3) Reboot the Linux machine
+4) Connect the power board to the Linux machine
+5) Run "get_device_info" file to get the cp2112 info
+6) Run "set_gpio_value" file to set 0&1 GPIOs values (usage: ./set_gpio_value -p <pin number> -v <pin value>)
+7) Run "get_power_data" file to get the power data (usage: ./get_power_data -r <sample rate> -t <time to run in seconeds> -f <save data file name>)
