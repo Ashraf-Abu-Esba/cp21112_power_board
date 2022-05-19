@@ -74,15 +74,30 @@ int main(int argc, char *argv[])
 	{
 		cout << "Cannot open file: " << file_name << endl;
 	}
-	poewrDataCsv << "Current value," << endl;
-	uint16_t current_data; 
+	poewrDataCsv << "Current value (mA), Voltage value(V),  Power(W)," << endl;
+	uint16_t current_data;
+	uint16_t voltage_data;
+
+	// pB.cp2112_device_reset();
+	// return 0;
 	for (int i = 0; i < samples_count; i++)
 	{
 
 		cout << "============================ sample: " << i << " ===============================" << endl;
 		current_data = pB.get_current_data();
-		cout << "current: " << to_string(current_data) << endl;
-		poewrDataCsv << to_string(current_data)  << "," << endl;
+		voltage_data = pB.get_voltage_data();
+
+		float pin_voltage = ((float)current_data / 4096) * 2.048;
+		float current_value = ((pin_voltage / 10) / 0.475) * 1000;
+
+		float x = ((float)voltage_data / 4096) * 2.048;
+		float voltage_value = ((x * 13) / 3);
+
+		float power = ((pin_voltage / 10) / 0.475) * 12;
+		cout << "Current(mA): " << to_string(current_value) << endl;
+		cout << "Voltage(V):  " << to_string(voltage_value) << endl;
+		cout << "Power(W):    " << to_string(power) << endl;
+		poewrDataCsv << to_string(current_value) << "," << to_string(12) << "," << to_string(power) << "," << endl;
 		usleep(sample_time);
 	}
 

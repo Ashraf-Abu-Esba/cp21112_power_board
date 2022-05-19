@@ -44,6 +44,7 @@ class PowerBoard
 private:
 	hid_device *_device;
 	unsigned char current_data[2];
+	unsigned char voltage_data[2];
 
 	int data_read_request()
 	{
@@ -59,16 +60,17 @@ private:
 		return res;
 	}
 
-	int data_write(unsigned char data)
+	int data_write(char data[2])
 	{
 		int res;
-		unsigned char buf[4];
+		unsigned char buf[5];
 		buf[0] = 0x14;
 		buf[1] = 0x6c;
-		buf[2] = 0x01;
-		buf[3] = data;
+		buf[2] = 0x02;
+		buf[3] = data[0];
+		buf[4] = data[1];
 
-		res = hid_write(_device, buf, 3);
+		res = hid_write(_device, buf, 5);
 		// cout << "data_read_request status: " << res << endl;
 		return res;
 	}
@@ -111,7 +113,7 @@ private:
 		return res;
 	}
 
-	int data_get_read_response()
+	int data_get_current_response()
 	{
 		int res;
 		unsigned char buf[65];
@@ -125,15 +127,43 @@ private:
 		return res;
 	}
 
+	int data_get_voltage_response()
+	{
+		int res;
+		unsigned char buf[65];
+		res = hid_read(_device, buf, 65);
+		// cout << "data_get_read_response status: " << res << endl;
+		// // Print out the returned buffer.
+		// for (int i = 0; i < 5; i++)
+		// 	cout << "buf[" << i << "]: " << hex(buf[i]) << dec << endl;
+		voltage_data[0] = buf[3];
+		voltage_data[1] = buf[4];
+		return res;
+	}
+
 	int request_current_data()
 	{
 		int res;
-		data_write(0x03);
+		char data[2] = {0xd2, 0x01};
+		data_write(data);
 		data_read_request();
 		transfer_status_request();
 		get_read_write_transfer_status();
 		data_force_read_request();
-		res = data_get_read_response();
+		res = data_get_current_response();
+		return res;
+	}
+
+	int request_voltage_data()
+	{
+		int res;
+		char data[2] = {0xd2, 0x03};
+		data_write(data);
+		data_read_request();
+		transfer_status_request();
+		get_read_write_transfer_status();
+		data_force_read_request();
+		res = data_get_voltage_response();
 		return res;
 	}
 
@@ -165,6 +195,18 @@ public:
 			std::cerr << e.what() << '\n';
 		}
 
+		return res;
+	}
+
+	int cp2112_device_reset()
+	{
+		int res;
+		unsigned char buf[2];
+		buf[0] = 0x01;
+		buf[1] = 0x01;
+
+		res = hid_write(_device, buf, 2);
+		// cout << "cp2112 device reset status: " << res << endl;
 		return res;
 	}
 
@@ -266,6 +308,18 @@ public:
 			cout << "buf[" << i << "]: " << hex(current_data[i]) << dec << endl;
 		}
 		data = current_data[1] | (current_data[0] & 0x0F) << 8;
+		return data;
+	}
+
+	uint16_t get_voltage_data()
+	{
+		uint16_t data;
+		request_voltage_data();
+		for (int i = 0; i < 2; i++)
+		{
+			cout << "buf[" << i << "]: " << hex(voltage_data[i]) << dec << endl;
+		}
+		data = voltage_data[1] | (voltage_data[0] & 0x0F) << 8;
 		return data;
 	}
 };
